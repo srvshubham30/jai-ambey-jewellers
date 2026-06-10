@@ -111,6 +111,15 @@ require('dotenv').config({ path: __dirname + '/.env' });
 
 const Product = require('./models/Product');
 const User = require('./models/User');
+
+
+
+const Order = require('./models/Order');
+
+
+
+
+
 const protect = require('./middleware/authMiddleware'); 
 
 const app = express();
@@ -213,6 +222,48 @@ app.post('/api/products', protect, async (req, res) => {
         return res.status(500).json({ message: "Error saving product", error: error.message });
     }
 });
+
+// ==========================================
+//          --- ORDER ROUTES 🛒 ---
+// ==========================================
+
+app.post('/api/orders/place-order', async (req, res) => {
+    try {
+        const { shippingAddress, items, amount } = req.body;
+
+        // Validation check
+        if (!shippingAddress || !items || items.length === 0) {
+            return res.status(400).json({ success: false, message: "Address ya items missing hain!" });
+        }
+
+        // Database ke liye object banana
+        const newOrder = new Order({
+            shippingAddress: shippingAddress,
+            items: items,
+            totalAmount: amount
+        });
+
+        // MongoDB me save karna
+        const savedOrder = await newOrder.save();
+
+        return res.status(201).json({
+            success: true,
+            message: "Order successfully database me save ho gaya!",
+            orderId: savedOrder._id
+        });
+
+    } catch (error) {
+        console.error("Order save error:", error);
+        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+});
+
+
+
+
+
+
+
 
 // Global Error Handler
 app.use((err, req, res, next) => {

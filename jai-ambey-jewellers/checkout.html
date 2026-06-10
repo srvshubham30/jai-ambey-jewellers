@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Jai Ambey Jewellers</title>
+    <link rel="stylesheet" href="style.css"> <style>
+        .checkout-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.05);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .checkout-container h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .form-group input:focus {
+            border-color: #b58328;
+            outline: none;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #b58328;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .submit-btn:hover {
+            background-color: #94671e;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="checkout-container">
+        <h2>Delivery Address Details</h2>
+        <form id="addressForm">
+            <div class="form-group">
+                <input type="text" id="fullName" placeholder="Full Name" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="phoneNumber" placeholder="Phone Number" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="addressLine" placeholder="House No., Building, Street Name" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="city" placeholder="City" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="state" placeholder="State" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="pincode" placeholder="Pincode" required>
+            </div>
+            
+            <button type="submit" class="submit-btn">Confirm Order & Place</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('addressForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // 1. Form se data lena
+            const shippingAddress = {
+                name: document.getElementById('fullName').value,
+                phone: document.getElementById('phoneNumber').value,
+                addressLine: document.getElementById('addressLine').value,
+                city: document.getElementById('city').value,
+                state: document.getElementById('state').value,
+                pincode: document.getElementById('pincode').value
+            };
+
+            // 2. LocalStorage se cart items uthana (jo add to cart ne save kiye the)
+            const cartItems = JSON.parse(localStorage.getItem('myShopCart')) || [];
+            
+            // 3. Total Price (Aap ise automatic calculate bhi kar sakte hain)
+            const totalAmount = 50000; 
+
+            if (cartItems.length === 0) {
+                alert("Aapka cart khali hai! Pehle product add karein.");
+                return;
+            }
+
+            // 4. Backend (Node.js) ko bhejkar database me save karwana
+            try {
+                const response = await fetch('http://localhost:5000/api/orders/place-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        shippingAddress,
+                        items: cartItems,
+                        amount: totalAmount
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('🎉 Order successfully save ho gaya hai database me!');
+                    localStorage.removeItem('cart'); // Cart clear karein
+                    window.location.href = 'index.html'; // Home page par bhej dein
+                } else {
+                    alert('Order fail ho gaya: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Backend server connect nahi ho pa raha h! Pehle backend chalu karo.');
+            }
+        });
+    </script>
+</body>
+</html>
