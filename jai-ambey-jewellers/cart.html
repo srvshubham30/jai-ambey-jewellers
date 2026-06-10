@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aapki Cart - Jai Ambey Jewellers</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .cart-container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #b59410;
+        }
+
+        h1 {
+            text-align: center;
+            color: #b59410;
+            border-bottom: 2px solid #b59410;
+            padding-bottom: 10px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+
+        .cart-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .item-details {
+            flex-grow: 1;
+            margin-left: 15px;
+        }
+
+        .price {
+            font-weight: bold;
+            color: #b59410;
+            font-size: 1.2rem;
+        }
+
+        .total-box {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #b59410;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .clear-btn {
+            background: #d9534f;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+            float: right;
+        }
+
+        /* 🛒 Cart items wale dabbe ko scrollable banane ke liye */
+        #cart-page-items {
+            max-height: 400px;
+            /* 👈 Isse zyada lambi list hote hi scroll chalu ho jayega */
+            overflow-y: auto;
+            /* 👈 Vertically scroll bar lane ke liye */
+            padding-right: 10px;
+            /* 👈 Scrollbar ke liye thodi jagah */
+        }
+
+        /* 💅 Scrollbar ko thoda patla aur sundar banane ke liye (Optional) */
+        #cart-page-items::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #cart-page-items::-webkit-scrollbar-thumb {
+            background-color: #b59410;
+            /* Gold theme color */
+            border-radius: 4px;
+        }
+
+        #cart-page-items::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+    </style>
+
+
+
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NB0Z8DW6LK"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-5F47XDVB6L');
+    </script>
+
+
+
+</head>
+
+<body>
+
+    <div class="cart-container">
+        <h1>Aapki Shopping Cart 🛒</h1>
+
+        <div id="cart-page-items">
+            <p style="text-align: center; color: gray;">Cart load ho rahi hai...</p>
+        </div>
+
+        <div class="total-box">
+            <span>Total Amount:</span>
+            <span id="cart-page-total" style="color: #b59410;">₹0</span>
+        </div>
+
+        <a href="index.html" class="btn">← Back to Shop</a>
+        <button onclick="clearCart()" class="clear-btn">Clear Cart 🗑️</button>
+    </div>
+
+    <script>
+        // Page khulte hi local storage se items nikal kar dikhana
+        function displayCart() {
+            const cartItemsContainer = document.getElementById('cart-page-items');
+            const totalContainer = document.getElementById('cart-page-total');
+
+            // LocalStorage se cart data lekar aana
+            let currentCart = JSON.parse(localStorage.getItem('myShopCart')) || [];
+
+            if (currentCart.length === 0) {
+                cartItemsContainer.innerHTML = `<p style="text-align: center; color: gray; font-size: 1.1rem; padding: 20px;">Aapki cart khali hai. Main page se kuch items add karein!</p>`;
+                totalContainer.innerText = '₹0';
+                return;
+            }
+
+            cartItemsContainer.innerHTML = '';
+            let total = 0;
+
+            currentCart.forEach(item => {
+                total += Number(item.price);
+
+                const row = document.createElement('div');
+                row.className = 'cart-item';
+                row.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}">
+                    <div class="item-details">
+                        <strong style="font-size: 1.1rem;">${item.name}</strong>
+                        <div style="color: gray; font-size: 0.9rem;">${item.category || 'Jewellery'}</div>
+                    </div>
+                    <div class="price">₹${Number(item.price).toLocaleString('en-IN')}</div>
+                `;
+                cartItemsContainer.appendChild(row);
+            });
+
+            totalContainer.innerText = `₹${total.toLocaleString('en-IN')}`;
+        }
+
+        // Cart khali karne ke liye function
+        function clearCart() {
+            if (confirm("Apakah aap sach me poori cart khali karna chahte hain?")) {
+                localStorage.removeItem('myShopCart');
+                displayCart();
+            }
+        }
+
+        // Run function on load
+        window.onload = displayCart;
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Jai Ambey Jewellers</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-box {
+            max-width: 500px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--card-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: transparent;
+            color: var(--text-color);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NB0Z8DW6LK"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-5F47XDVB6L');
+    </script>
+
+
+
+
+
+</head>
+
+<body data-theme="light">
+
+    <header>
+        <h1>Jai Ambey Jewellers - Admin Control</h1>
+        <a href="index.html" style="color: white; text-decoration: none; font-weight: bold;">← Go To Website</a>
+    </header>
+
+    <div id="login-section" class="admin-box">
+        <h2>Owner Login (Sandeep Kumar)</h2>
+        <br>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="admin-username" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="admin-password" placeholder="Enter password">
+        </div>
+        <button id="login-btn" class="buy-btn">Login</button>
+        <p id="login-msg" style="margin-top:10px; color: red;"></p>
+    </div>
+
+    <div id="dashboard-section" class="admin-box hidden">
+        <h2>Add New Jewellery Item 💎</h2>
+        <br>
+        <div class="form-group">
+            <label>Jewellery Name</label>
+            <input type="text" id="prod-name" placeholder="e.g., Heavy Bridal Gold Necklace">
+        </div>
+        <div class="form-group">
+            <label>Price (INR)</label>
+            <input type="number" id="prod-price" placeholder="e.g., 185000">
+        </div>
+        <div class="form-group">
+            <label>Image Link (URL)</label>
+            <input type="text" id="prod-img" placeholder="Paste image internet URL link here">
+        </div>
+        <button id="add-prod-btn" class="buy-btn">Upload to Website</button>
+        <p id="upload-msg" style="margin-top:10px; color: green;"></p>
+        <br>
+        <button id="logout-btn" style="background: red; color: white;" class="buy-btn">Logout</button>
+    </div>
+
+    <script>
+        // API URL ko direct IP address ke sath set kiya hai
+        const API_URL = "https://jai-ambey-jewellers.onrender.com/api";
+
+        // Form references
+        const loginSection = document.getElementById('login-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+        const loginMsg = document.getElementById('login-msg');
+
+        // Check token on load
+        if (localStorage.getItem('adminToken')) {
+            if (loginSection) loginSection.classList.add('hidden');
+            if (dashboardSection) dashboardSection.classList.remove('hidden');
+        }
+
+        // LOGIN PROCESS
+        document.getElementById('login-btn').addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('admin-username').value.trim();
+            const password = document.getElementById('admin-password').value.trim();
+
+            if (!username || !password) {
+                alert("Please enter both username and password!");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                // 🔥 SMART FIX: Pehle check karenge ki response JSON hai ya kuch aur
+                const contentType = res.headers.get("content-type");
+                let data;
+
+                if (contentType && contentType.includes("application/json")) {
+                    data = await res.json();
+                } else {
+                    // Agar backend ne HTML ya plain text error diya
+                    const textError = await res.text();
+                    console.error("Backend Sent Non-JSON Response:", textError);
+                    alert("Backend Server ne galat format me data bheja! Please check backend console.");
+                    return;
+                }
+
+                if (res.ok) {
+                    localStorage.setItem('adminToken', data.token);
+                    alert("Login Successful! Welcome Sandeep Kumar. 💎");
+                    if (loginSection) loginSection.classList.add('hidden');
+                    if (dashboardSection) dashboardSection.classList.remove('hidden');
+                } else {
+                    if (loginMsg) loginMsg.textContent = data.message;
+                    // Seedhe bataega ki galat password hai ya galat username!
+                    alert("Login Failed: " + data.message);
+                }
+            } catch (error) {
+                console.error("Connection Error:", error);
+                alert("An error occurred: " + error.message);
+            }
+        });
+
+        // PRODUCT UPLOAD PROCESS
+        document.getElementById('add-prod-btn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('prod-name').value;
+            const price = document.getElementById('prod-price').value;
+            const image = document.getElementById('prod-img').value;
+            const jwtToken = localStorage.getItem('adminToken');
+
+            if (!name || !price || !image) {
+                alert("Please fill all fields!");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${jwtToken}`
+                    },
+                    body: JSON.stringify({ name, price, image })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    alert("Product successfully live ho gaya!");
+                    document.getElementById('prod-name').value = '';
+                    document.getElementById('prod-price').value = '';
+                    document.getElementById('prod-img').value = '';
+                } else {
+                    alert("Upload Failed: " + data.message);
+                }
+            } catch (err) {
+                alert("Server issue while uploading product.");
+            }
+        });
+
+        // LOGOUT
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('adminToken');
+            location.reload();
+        });
+    </script>
+
+
+
+</body>
+
+</html>
